@@ -1,0 +1,18 @@
+<entry id="correr">
+    <form>
+        <orth>Correr</orth>
+    </form>
+    <sense>
+        <gramGrp>v. i.</gramGrp>
+        <def>Andar depressa.Ser transportado com velocidade.Ir rapidamente.Apressar-se.Escoar-se, passar: _o tempo corre_.Prolongar-se.Dizer-se, constar: _corre que o Governo está em crise_.Ter curso, circular, como moeda ou papel de crédito: _o pataco já não corre_.</def>
+    </sense>
+    <sense>
+        <gramGrp>V. t.</gramGrp>
+        <def>Percorrer: _correr a Europa_.Fazer passar ligeiramente.Fazer andar.Estender.Perseguir na carreira: _o cão correu a lebre_.Expulsar: _corri-o de casa_.Estar sujeito a: _correr perigo_.Andar em busca de.</def>
+    </sense>
+    <sense ast="1">
+        <gramGrp>V. p.</gramGrp>
+        <def>Espalhar-se, dizer-se, circular. Cf. Rui Barbosa, _Réplica_, 159.</def>
+    </sense>
+    <etym orig="Lat">(Lat. _currere_)</etym>
+</entry>
