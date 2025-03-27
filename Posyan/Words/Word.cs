@@ -1,7 +1,7 @@
 using System.Xml.Linq;
 
 
-namespace Posyan;
+namespace Posyan.Words;
 
 
 public enum GramaticalClass
@@ -44,7 +44,7 @@ public static class GramaticalClassExtensions
 public readonly record struct WordEtymology(string? Origin, string? Literal);
 
 
-public readonly struct Word
+public readonly record struct Word
 {
     public string Orthography { get; init; }
     public string Definition { get; init; }
@@ -56,7 +56,6 @@ public readonly struct Word
         => $"Orthography: {Orthography}\nDefinition: {Definition}\nGramatical Class: {GramaticalClass}\nEtymology: {Etymology}";
 
 
-
     public static Word FromXml(XDocument xml)
     {
         var data = xml.Element("entry")!;
@@ -66,9 +65,9 @@ public readonly struct Word
 
         return new Word
         {
-            Orthography = form.Element("orth")!.Value,
+            Orthography = form.Element("orth")!.Value.ToLower(),
             Definition = sense.Element("def")!.Value,
-            GramaticalClass = sense.Element("gramGrp")!.Value.ToGramaticalClass(),
+            GramaticalClass = sense.Element("gramGrp")?.Value.ToGramaticalClass() ?? GramaticalClass.Unknown,
             Etymology = new WordEtymology(etym?.Attribute("orig")?.Value, etym?.Value)
         };
     }

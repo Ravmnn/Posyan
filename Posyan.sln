@@ -2,6 +2,14 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Posyan", "Posyan\Posyan.csproj", "{872E31E8-CAF2-40A8-B905-8A7C62D642BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Termbow", "..\Termbow\Termbow\Termbow.csproj", "{02D55A67-76E9-45E9-84B9-7053252E445C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TermbowTest", "..\Termbow\TermbowTest\TermbowTest.csproj", "{A5014C17-B456-424B-9427-6CA0B5BB8101}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fint", "..\Fint\Fint\Fint.csproj", "{487C551B-7149-4F1E-B048-F681244C6F1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FintTest", "..\Fint\FintTest\FintTest.csproj", "{9AB4FE50-34B7-405E-A9D8-5763FC48BD1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +20,21 @@ Global
 		{872E31E8-CAF2-40A8-B905-8A7C62D642BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{872E31E8-CAF2-40A8-B905-8A7C62D642BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{872E31E8-CAF2-40A8-B905-8A7C62D642BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02D55A67-76E9-45E9-84B9-7053252E445C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02D55A67-76E9-45E9-84B9-7053252E445C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02D55A67-76E9-45E9-84B9-7053252E445C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02D55A67-76E9-45E9-84B9-7053252E445C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5014C17-B456-424B-9427-6CA0B5BB8101}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5014C17-B456-424B-9427-6CA0B5BB8101}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5014C17-B456-424B-9427-6CA0B5BB8101}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5014C17-B456-424B-9427-6CA0B5BB8101}.Release|Any CPU.Build.0 = Release|Any CPU
+		{487C551B-7149-4F1E-B048-F681244C6F1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{487C551B-7149-4F1E-B048-F681244C6F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{487C551B-7149-4F1E-B048-F681244C6F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{487C551B-7149-4F1E-B048-F681244C6F1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AB4FE50-34B7-405E-A9D8-5763FC48BD1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AB4FE50-34B7-405E-A9D8-5763FC48BD1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AB4FE50-34B7-405E-A9D8-5763FC48BD1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AB4FE50-34B7-405E-A9D8-5763FC48BD1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
