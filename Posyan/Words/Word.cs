@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace Posyan.Words;
 
 
-public enum GramaticalClass
+public enum GrammaticalClass
 {
     Unknown,
 
@@ -23,20 +23,20 @@ public enum GramaticalClass
 
 public static class GramaticalClassExtensions
 {
-    public static GramaticalClass ToGramaticalClass(this string gramaticalClass) => gramaticalClass switch
+    public static GrammaticalClass ToGramaticalClass(this string gramaticalClass) => gramaticalClass switch
     {
-        "m." => GramaticalClass.MascNoun,
-        "f." => GramaticalClass.FemNoun,
-        "adj." => GramaticalClass.Adjective,
-        "adv." => GramaticalClass.Adverb,
-        "v." or "v. i." or "v. t." => GramaticalClass.Verb,
-        "prep." => GramaticalClass.Preposition,
-        "conj." => GramaticalClass.Conjunction,
-        "pron." => GramaticalClass.Pronoun,
-        "num." => GramaticalClass.Numeral,
-        "interj." => GramaticalClass.Interjection,
+        "m." => GrammaticalClass.MascNoun,
+        "f." => GrammaticalClass.FemNoun,
+        "adj." => GrammaticalClass.Adjective,
+        "adv." => GrammaticalClass.Adverb,
+        "v." or "v. i." or "v. t." => GrammaticalClass.Verb,
+        "prep." => GrammaticalClass.Preposition,
+        "conj." => GrammaticalClass.Conjunction,
+        "pron." => GrammaticalClass.Pronoun,
+        "num." => GrammaticalClass.Numeral,
+        "interj." => GrammaticalClass.Interjection,
 
-        _ => GramaticalClass.Unknown
+        _ => GrammaticalClass.Unknown
     };
 }
 
@@ -48,12 +48,12 @@ public readonly record struct Word
 {
     public string Orthography { get; init; }
     public string Definition { get; init; }
-    public GramaticalClass GramaticalClass { get; init; }
-    public WordEtymology? Etymology { get; init; }
+    public GrammaticalClass GrammaticalClass { get; init; }
+    public WordEtymology Etymology { get; init; }
 
 
     public override string ToString()
-        => $"Orthography: {Orthography}\nDefinition: {Definition}\nGramatical Class: {GramaticalClass}\nEtymology: {Etymology}";
+        => $"Orthography: {Orthography}\nDefinition: {Definition}\nGramatical Class: {GrammaticalClass}\nEtymology: {Etymology}";
 
 
     public static Word FromXml(XDocument xml)
@@ -65,9 +65,9 @@ public readonly record struct Word
 
         return new Word
         {
-            Orthography = form.Element("orth")!.Value.ToLower(),
+            Orthography = form.Element("orth")!.Value.ToLower(), // default to lower
             Definition = sense.Element("def")!.Value,
-            GramaticalClass = sense.Element("gramGrp")?.Value.ToGramaticalClass() ?? GramaticalClass.Unknown,
+            GrammaticalClass = sense.Element("gramGrp")?.Value.ToGramaticalClass() ?? GrammaticalClass.Unknown,
             Etymology = new WordEtymology(etym?.Attribute("orig")?.Value, etym?.Value)
         };
     }

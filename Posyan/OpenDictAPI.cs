@@ -2,8 +2,6 @@ using System.Xml.Linq;
 
 using Newtonsoft.Json.Linq;
 
-using Fint;
-
 using Posyan.Words;
 
 
@@ -33,29 +31,5 @@ public class OpenDictApi : HttpClient
             return null;
 
         return Word.FromXml(xml);
-    }
-
-
-    public static async Task<IEnumerable<Word>> GetAllWordsFromText(string text, IProgress<(int, string)>? progress = null)
-    {
-        var dict = new OpenDictApi();
-        var words = new List<Word>();
-
-        var scanner = new Scanner(new WordOrDigitRule(0));
-        var tokens = scanner.Scan(new Lexer(text).Tokenize()).ToArray();
-
-        var wordsProcessed = 0;
-
-        await Parallel.ForEachAsync(tokens, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (token, _) =>
-        {
-            if (dict.GetWordAsync(token.Text).Result is { } word && !words.Contains(word))
-                words.Add(word);
-
-            progress?.Report((++wordsProcessed * 100 / tokens.Length, token.Text));
-
-            return ValueTask.CompletedTask;
-        });
-
-        return words;
     }
 }

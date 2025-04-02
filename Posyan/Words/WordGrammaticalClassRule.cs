@@ -17,7 +17,7 @@ public class WordGrammaticalClassRule(IEnumerable<Word> words) : Rule(null)
         var token = tokens[index];
         var word = Words.FirstOrDefault(word => word.Orthography == token.Text);
 
-        token = token with { Id = word == default ? (int)GramaticalClass.Unknown : (int)word.GramaticalClass };
+        token = token with { Id = word == default ? (int)GrammaticalClass.Unknown : (int)word.GrammaticalClass };
 
         return [token];
     }

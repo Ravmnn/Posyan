@@ -3,8 +3,7 @@ using Fint;
 using Termbow.Color;
 using Termbow.Color.Paint;
 
-using Spectre.Console;
-
+using Posyan.Terminal;
 using Posyan.Words;
 
 
@@ -17,60 +16,78 @@ namespace Posyan;
 
 class PosyanProgram
 {
-    public static Dictionary<int, ColorObject> ColorTable => new Dictionary<int, ColorObject>
+    public static Dictionary<int, ColorObject> ColorTable { get; } = new Dictionary<int, ColorObject>
     {
         { -1, 243 },
 
-        { (int)GramaticalClass.MascNoun, 38 },
-        { (int)GramaticalClass.FemNoun, 38 },
-        { (int)GramaticalClass.Verb, 126 },
-        { (int)GramaticalClass.Adjective, 141 },
-        { (int)GramaticalClass.Adverb, 210 },
-        { (int)GramaticalClass.Preposition, 220 },
-        { (int)GramaticalClass.Conjunction, 40 },
-        { (int)GramaticalClass.Pronoun, ColorValue.Italic },
-        { (int)GramaticalClass.Numeral, 150 },
-        { (int)GramaticalClass.Interjection, 63 }
+        { (int)GrammaticalClass.MascNoun, 38 },
+        { (int)GrammaticalClass.FemNoun, 38 },
+        { (int)GrammaticalClass.Verb, 126 },
+        { (int)GrammaticalClass.Adjective, 141 },
+        { (int)GrammaticalClass.Adverb, 210 },
+        { (int)GrammaticalClass.Preposition, 220 },
+        { (int)GrammaticalClass.Conjunction, 40 },
+        { (int)GrammaticalClass.Pronoun, ColorValue.Italic },
+        { (int)GrammaticalClass.Numeral, 150 },
+        { (int)GrammaticalClass.Interjection, 63 }
     };
 
+    public static string PosyanCacheDirectory => $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.cache/Posyan";
+    public static string WordCacheFilePath => $"{PosyanCacheDirectory}/words.bin";
+
+    public static OpenDictApi Api { get; }
+    public static TextAnalyser Analyser { get; }
+
+    public static string Source { get; set; }
 
 
-    static void Main(string[] args)
+    static PosyanProgram()
     {
-        var source = File.ReadAllText("../../../test.txt");
+        Api = new OpenDictApi();
+        Analyser = new TextAnalyser(Api);
 
-        var progress = new Progress<(int, string)>();
-        var wordsTask = OpenDictApi.GetAllWordsFromText(source, progress);
-
-        ProcessingStatus(progress, wordsTask);
-        wordsTask.Wait();
-
-        var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(wordsTask.Result));
-        var painter = new FintPainter(scanner, ColorTable);
-
-        Console.Clear();
-        Console.WriteLine(painter.Paint(source));
-
-        Console.ReadKey();
+        Source = "";
     }
 
 
-    public static void ProcessingStatus(Progress<(int, string)> progress, Task<IEnumerable<Word>> wordsTask)
+    public static void Init()
     {
-        AnsiConsole.Status()
-            .Spinner(Spinner.Known.Arc)
-            .Start("Analysing words...", context =>
-            {
-                var progressFactor = 0;
+        if (!Directory.Exists(PosyanCacheDirectory))
+            Directory.CreateDirectory(PosyanCacheDirectory);
 
-                progress.ProgressChanged += (_, value) =>
-                {
-                    progressFactor = value.Item1;
-                    AnsiConsole.MarkupLine($"[bold]>[/] [palegreen1]{value.Item2}[/]");
-                };
+        if (!File.Exists(WordCacheFilePath))
+            File.Create(WordCacheFilePath).Close();
+    }
 
-                while (!wordsTask.IsCompleted)
-                    context.Status = $"[italic]Analysing words...[/] [bold]{progressFactor}%[/]";
-            });
+
+    public static void Main(string[] args)
+    {
+        try
+        {
+            Init();
+
+            Source = File.ReadAllText("../../../test.txt");
+
+            Analyser.Words = WordBinary.ReadAll(WordCacheFilePath).ToList();
+
+            var progress = new Progress<WordRegisteringData>();
+            var task = Analyser.RegisterNewWordsFromStringAsync(Source, progress);
+
+            StatusMessages.AnalysingWords(task, progress);
+
+            var newWords = task.Result.ToArray();
+
+            WordBinary.WriteAll(WordCacheFilePath, newWords);
+
+            var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(Analyser.Words));
+            var painter = new FintPainter(scanner, ColorTable);
+
+            Console.Clear();
+            Console.WriteLine(painter.Paint(Source));
+        }
+        finally
+        {
+            Console.ReadKey();
+        }
     }
 }
