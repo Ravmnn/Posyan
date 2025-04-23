@@ -10,6 +10,16 @@ namespace Posyan;
 
 public class OpenDictApi : HttpClient
 {
+    public record struct WordSearchResult(Word? Word, string WordText, bool HasFailed)
+    {
+        public static WordSearchResult Failed(string wordText)
+            => new WordSearchResult { Word = null, WordText = wordText, HasFailed = true};
+
+        public static WordSearchResult Success(Word word)
+            => new WordSearchResult { Word = word, WordText = word.Orthography, HasFailed = false};
+    }
+
+
     public readonly static string Url = "https://api.dicionario-aberto.net";
     public readonly static string WordUrl = $"{Url}/word";
 
@@ -25,11 +35,27 @@ public class OpenDictApi : HttpClient
     }
 
 
-    public async Task<Word?> GetWordAsync(string word)
+    public async Task<WordSearchResult> GetWordAsync(string word)
     {
         if (await GetWordXmlDataAsync(word) is not {} xml)
-            return null;
+            return WordSearchResult.Failed(word);
 
-        return Word.FromXml(xml);
+        return WordSearchResult.Success(Word.FromXml(xml));
+    }
+
+
+    public async Task<IEnumerable<WordSearchResult>> GetWordsAsync(IEnumerable<string> words, Action<WordSearchResult>? callback = null)
+    {
+        var result = new List<WordSearchResult>();
+
+        foreach (var word in words)
+        {
+            var wordSearchResult = await GetWordAsync(word);
+
+            result.Add(wordSearchResult);
+            callback?.Invoke(wordSearchResult);
+        }
+
+        return result;
     }
 }

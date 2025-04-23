@@ -3,15 +3,14 @@ using Fint;
 using Termbow.Color;
 using Termbow.Color.Paint;
 
-using Posyan.Terminal;
 using Posyan.Words;
+using Spectre.Console;
 
 
 namespace Posyan;
 
 
 // TODO: add verb conjugation detector
-// TODO: store already searched words and its data (in disc) for faster look ups.
 
 
 class PosyanProgram
@@ -44,7 +43,7 @@ class PosyanProgram
     static PosyanProgram()
     {
         Api = new OpenDictApi();
-        Analyser = new TextAnalyser(Api);
+        Analyser = new TextAnalyser();
 
         Source = "";
     }
@@ -68,18 +67,17 @@ class PosyanProgram
 
             Source = File.ReadAllText("../../../test.txt");
 
-            Analyser.Words = WordBinary.ReadAll(WordCacheFilePath).ToList();
+            Analyser.WordsDefinition = WordBinary.ReadAll(WordCacheFilePath).ToList();
 
-            var progress = new Progress<WordRegisteringData>();
-            var task = Analyser.RegisterNewWordsFromStringAsync(Source, progress);
+            var newWordsResults = Api.GetWordsAsync(Analyser.SearchForNewWords(Source), WordSearchResultCallback);
 
-            StatusMessages.AnalysingWords(task, progress);
+            var newWords = (from newWord in newWordsResults.Result where !newWord.HasFailed select (Word)newWord.Word).ToArray();
 
-            var newWords = task.Result.ToArray();
+            Analyser.WordsDefinition.AddRange(newWords);
 
             WordBinary.WriteAll(WordCacheFilePath, newWords);
 
-            var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(Analyser.Words));
+            var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(Analyser.WordsDefinition));
             var painter = new FintPainter(scanner, ColorTable);
 
             Console.Clear();
@@ -89,5 +87,16 @@ class PosyanProgram
         {
             Console.ReadKey();
         }
+    }
+
+
+    private static void WordSearchResultCallback(OpenDictApi.WordSearchResult result)
+    {
+        AnsiConsole.Markup($"New word \"[mediumspringgreen]{result.WordText}[/]\".");
+
+        if (result.HasFailed)
+            AnsiConsole.Markup("[red] (Failed)[/]");
+
+        AnsiConsole.MarkupLine("");
     }
 }
