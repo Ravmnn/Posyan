@@ -12,7 +12,7 @@ using Posyan.Analysis;
 namespace Posyan;
 
 
-// TODO: add verb conjugation detector
+// TODO: finish verbs
 
 
 class PosyanProgram
@@ -63,9 +63,9 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
-        // PrintWordCacheFile();
-        //
-        // return;
+        PrintWordCacheFile();
+
+        return;
 
         try
         {
