@@ -1,10 +1,12 @@
 using Fint;
 
+using Spectre.Console;
+
 using Termbow.Color;
 using Termbow.Color.Paint;
 
 using Posyan.Words;
-using Spectre.Console;
+using Posyan.Analysis;
 
 
 namespace Posyan;
@@ -61,17 +63,25 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
+        // PrintWordCacheFile();
+        //
+        // return;
+
         try
         {
             Init();
 
-            Source = File.ReadAllText("../../../test.txt");
+            Source = File.ReadAllText("test.txt");
 
+            // load already known words from cache
             Analyser.WordsDefinition = WordBinary.ReadAll(WordCacheFilePath).ToList();
 
-            var newWordsResults = Api.GetWordsAsync(Analyser.SearchForNewWords(Source), WordSearchResultCallback);
+            // search for new words and store them
+            var newStringWords = Analyser.SearchForNewWords(Source);
+            var newWordsResults = Api.GetWordsAsync(newStringWords, WordSearchResultCallback);
 
-            var newWords = (from newWord in newWordsResults.Result where !newWord.HasFailed select (Word)newWord.Word).ToArray();
+            var newWords = OpenDictApi.WordSearchResult.GetSuccessfullyWords(newWordsResults.Result);
+            newWords = VerbAnalyser.InstantiateVerbs(newWords).ToArray();
 
             Analyser.WordsDefinition.AddRange(newWords);
 
@@ -98,5 +108,17 @@ class PosyanProgram
             AnsiConsole.Markup("[red] (Failed)[/]");
 
         AnsiConsole.MarkupLine("");
+    }
+
+
+    private static void PrintWordCacheFile()
+    {
+        var words = WordBinary.ReadAll(WordCacheFilePath);
+
+        foreach (var word in words)
+        {
+            AnsiConsole.MarkupLine(word.ToString());
+            AnsiConsole.MarkupLine("\n");
+        }
     }
 }

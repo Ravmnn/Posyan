@@ -17,6 +17,10 @@ public class OpenDictApi : HttpClient
 
         public static WordSearchResult Success(Word word)
             => new WordSearchResult { Word = word, WordText = word.Orthography, HasFailed = false};
+
+
+        public static IEnumerable<Word> GetSuccessfullyWords(IEnumerable<WordSearchResult> words)
+            => from word in words where !word.HasFailed select (Word)word.Word;
     }
 
 

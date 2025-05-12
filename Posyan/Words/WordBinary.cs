@@ -1,24 +1,33 @@
+using Spectre.Console;
+
 namespace Posyan.Words;
 
 
 public static class WordBinary
 {
-    private static string? StringOrNull(string source)
-        => source == "null" ? null : source;
+    private static void ReadWithoutAdvancing(BinaryReader reader, Action<BinaryReader> readingOperation)
+    {
+        var oldPosition = reader.BaseStream.Position;
+
+        readingOperation(reader);
+
+        reader.BaseStream.Position = oldPosition;
+    }
 
 
     public static Word Read(BinaryReader reader)
     {
-        return new Word
-        {
-            Orthography = reader.ReadString(),
-            Definition = reader.ReadString(),
-            GrammaticalClass = (GrammaticalClass)reader.ReadInt32(),
-            Etymology = new WordEtymology(
-                StringOrNull(reader.ReadString()),
-                StringOrNull(reader.ReadString())
-            )
-        };
+        // gets the grammatical class without advancing the stream position,
+        // so we can instantiate the correct object.
+
+        var grammaticalClass = GrammaticalClass.Unknown;
+        ReadWithoutAdvancing(reader, binaryReader => grammaticalClass = (GrammaticalClass)binaryReader.ReadByte());
+
+        var word = grammaticalClass == GrammaticalClass.Verb ? new Verb() : new Word();
+
+        word.ReadFromBinary(reader);
+
+        return word;
     }
 
 
@@ -35,20 +44,19 @@ public static class WordBinary
         var words = new List<Word>();
 
         while (reader.BaseStream.Position != reader.BaseStream.Length)
-            words.Add(Read(reader));
+        {
+            var word = Read(reader);
+            words.Add(word);
+        }
 
         return words;
     }
 
 
+
+
     public static void Write(BinaryWriter writer, Word word)
-    {
-        writer.Write(word.Orthography);
-        writer.Write(word.Definition);
-        writer.Write((int)word.GrammaticalClass);
-        writer.Write(word.Etymology.Origin ?? "null");
-        writer.Write(word.Etymology.Literal ?? "null");
-    }
+        => word.WriteToBinary(writer);
 
 
     public static void Write(string path, Word word)

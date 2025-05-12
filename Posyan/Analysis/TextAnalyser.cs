@@ -3,10 +3,10 @@ using Fint;
 using Posyan.Words;
 
 
-namespace Posyan;
+namespace Posyan.Analysis;
 
 
-public class TextAnalyser()
+public class TextAnalyser
 {
     private readonly Scanner _scanner = new Scanner(new WordOrDigitRule(0));
 

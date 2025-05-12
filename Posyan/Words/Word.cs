@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace Posyan.Words;
 
 
-public enum GrammaticalClass
+public enum GrammaticalClass : byte
 {
     Unknown,
 
@@ -44,16 +44,62 @@ public static class GramaticalClassExtensions
 public readonly record struct WordEtymology(string? Origin, string? Literal);
 
 
-public readonly record struct Word
+public class Word
 {
-    public string Orthography { get; init; }
-    public string Definition { get; init; }
-    public GrammaticalClass GrammaticalClass { get; init; }
-    public WordEtymology Etymology { get; init; }
+    public string Orthography { get; private set; }
+    public string Definition { get; private set; }
+    public GrammaticalClass GrammaticalClass { get; private set; }
+    public WordEtymology Etymology { get; private set;}
+
+
+    public Word(string orthography, string definition, GrammaticalClass grammaticalClass, WordEtymology etymology)
+    {
+        Orthography = orthography.ToLower(); // default to lower
+        Definition = definition;
+        GrammaticalClass = grammaticalClass;
+        Etymology = etymology;
+    }
+
+    public Word()
+    {
+        Orthography = Definition = "";
+        GrammaticalClass = GrammaticalClass.Unknown;
+        Etymology = new WordEtymology();
+    }
+
 
 
     public override string ToString()
-        => $"Orthography: {Orthography}\nDefinition: {Definition}\nGramatical Class: {GrammaticalClass}\nEtymology: {Etymology}";
+        => $"Gramatical Class: {GrammaticalClass}\nOrthography: {Orthography}\nDefinition: {Definition}\nEtymology: {Etymology}";
+
+
+    private static string? StringOrNull(string source)
+        => source == "null" ? null : source;
+
+    public virtual void ReadFromBinary(BinaryReader reader)
+    {
+        GrammaticalClass = (GrammaticalClass)reader.ReadByte();
+        Orthography = reader.ReadString();
+        Definition = reader.ReadString();
+
+        Etymology = new WordEtymology(
+            StringOrNull(reader.ReadString()),
+            StringOrNull(reader.ReadString())
+        );
+    }
+
+
+    public virtual void WriteToBinary(BinaryWriter writer)
+    {
+        // the first data of a word binary data sequence must be its
+        // class, so we know how to read it.
+
+        writer.Write((byte)GrammaticalClass);
+        writer.Write(Orthography);
+        writer.Write(Definition);
+        writer.Write(Etymology.Origin ?? "null");
+        writer.Write(Etymology.Literal ?? "null");
+    }
 
 
     public static Word FromXml(XDocument xml)
@@ -63,12 +109,11 @@ public readonly record struct Word
         var sense = data.Element("sense")!;
         var etym = data.Element("etym");
 
-        return new Word
-        {
-            Orthography = form.Element("orth")!.Value.ToLower(), // default to lower
-            Definition = sense.Element("def")!.Value,
-            GrammaticalClass = sense.Element("gramGrp")?.Value.ToGramaticalClass() ?? GrammaticalClass.Unknown,
-            Etymology = new WordEtymology(etym?.Attribute("orig")?.Value, etym?.Value)
-        };
+        return new Word(
+        form.Element("orth")!.Value,
+        sense.Element("def")!.Value,
+        sense.Element("gramGrp")?.Value.ToGramaticalClass() ?? GrammaticalClass.Unknown,
+        new WordEtymology(etym?.Attribute("orig")?.Value, etym?.Value)
+        );
     }
 }
