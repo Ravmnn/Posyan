@@ -1,26 +1,7 @@
 namespace Posyan.Words;
 
 
-public enum VerbNumber
-{
-    Undefined,
-
-    Singular,
-    Plural
-}
-
-
-public enum VerbMood
-{
-    Undefined,
-
-    Indicative,
-    Subjective,
-    Imperative
-}
-
-
-// public enum VerbVoice // Verb voice is almost all based on semantic.
+// public enum VerbVoice // Verb voice is almost totally based on semantic.
 // {
 //     Undefined,
 //
@@ -30,9 +11,33 @@ public enum VerbMood
 // }
 
 
-public enum VerbTense
+
+
+public enum VerbConjugation
 {
     Undefined,
+
+    First,
+    Second,
+    Third,
+}
+
+
+
+
+public enum VerbMood
+{
+    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
+
+    Indicative,
+    Subjective,
+    Imperative
+}
+
+
+public enum VerbTense
+{
+    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
 
     Present,
     PastPerfect,
@@ -44,9 +49,30 @@ public enum VerbTense
 }
 
 
+public enum VerbPerson
+{
+    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
+
+    First,
+    Second,
+    Third,
+}
+
+
+public enum VerbNumber
+{
+    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
+
+    Singular,
+    Plural
+}
+
+
+
+
 public enum VerbNominalForm
 {
-    Undefined,
+    Undefined, // Verbs inflected (mood, tense, person, number) aren't in a nominal form
 
     Infinitive,
     Gerund,
@@ -56,27 +82,20 @@ public enum VerbNominalForm
 
 public class Verb : Word
 {
-    // Defines whether this verb instance should be treated as
-    // a base verb or not. If so, it means it will be used as a base for matching
-    // non-base verbs (of the same type as this) conjugation and that it will be
-    // stored in the cache.
-    public bool IsBase { get; private set; }
-
     public string Root { get; private set; }
 
-    public byte Conjugation { get; private set; }
-    public byte Person { get; private set; }
-    public VerbNumber Number { get; private set; }
+    public VerbConjugation Conjugation { get; private set; }
+
     public VerbMood Mood { get; private set; }
     public VerbTense Tense { get; private set; }
+    public VerbPerson Person { get; private set; }
+    public VerbNumber Number { get; private set; }
     public VerbNominalForm NominalForm { get; private set; }
 
 
     public Verb(string orthography, string definition, WordEtymology etymology)
         : base(orthography, definition, GrammaticalClass.Verb, etymology)
     {
-        IsBase = true;
-
         Root = GetInfinitiveVerbRoot(Orthography) ?? throw new InvalidOperationException($"Base verb instantiation must be in infinitive form. (\"{orthography}\")");
         Conjugation = GetConjugationOfInfinitiveVerb(Orthography);
 
@@ -86,10 +105,9 @@ public class Verb : Word
     public Verb(Word word)
         : this(word.Orthography, word.Definition, word.Etymology) {}
 
-    public Verb()
-    {
-        IsBase = false;
 
+    protected Verb()
+    {
         Root = "";
     }
 
@@ -108,12 +126,20 @@ public class Verb : Word
         base.ReadFromBinary(reader);
 
         Root = reader.ReadString();
-        Conjugation = reader.ReadByte();
-        Person = reader.ReadByte();
-        Number = (VerbNumber)reader.ReadByte();
+        Conjugation = (VerbConjugation)reader.ReadByte();
         Mood = (VerbMood)reader.ReadByte();
         Tense = (VerbTense)reader.ReadByte();
+        Person = (VerbPerson)reader.ReadByte();
+        Number = (VerbNumber)reader.ReadByte();
         NominalForm = (VerbNominalForm)reader.ReadByte();
+    }
+
+    public new static Verb FromBinary(BinaryReader reader)
+    {
+        var verb = new Verb();
+        verb.ReadFromBinary(reader);
+
+        return verb;
     }
 
 
@@ -121,15 +147,15 @@ public class Verb : Word
     {
         base.WriteToBinary(writer);
 
-        if (!IsBase)
-            throw new InvalidOperationException("Only base verbs can be written.");
+        if (!IsVerbInInfinitive(Orthography))
+            throw new InvalidOperationException("Only infinitive verbs can be written.");
 
         writer.Write(Root);
-        writer.Write(Conjugation);
-        writer.Write(Person);
-        writer.Write((byte)Number);
+        writer.Write((byte)Conjugation);
         writer.Write((byte)Mood);
         writer.Write((byte)Tense);
+        writer.Write((byte)Person);
+        writer.Write((byte)Number);
         writer.Write((byte)NominalForm);
     }
 
@@ -142,17 +168,17 @@ public class Verb : Word
         => verb.EndsWith("ar") || verb.EndsWith("er") || verb.EndsWith("ir");
 
 
-    public static byte GetConjugationOfInfinitiveVerb(string verb)
+    public static VerbConjugation GetConjugationOfInfinitiveVerb(string verb)
     {
         var suffix = verb[^2..];
 
         return suffix switch
         {
-            "ar" => 1,
-            "er" => 2,
-            "ir" => 3,
+            "ar" => VerbConjugation.First,
+            "er" => VerbConjugation.Second,
+            "ir" => VerbConjugation.Third,
 
-            _ => 0
+            _ => VerbConjugation.Undefined
         };
     }
 }

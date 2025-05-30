@@ -60,7 +60,8 @@ public class Word
         Etymology = etymology;
     }
 
-    public Word()
+
+    protected Word()
     {
         Orthography = Definition = "";
         GrammaticalClass = GrammaticalClass.Unknown;
@@ -86,6 +87,15 @@ public class Word
             StringOrNull(reader.ReadString()),
             StringOrNull(reader.ReadString())
         );
+    }
+
+    public static Word FromBinary(BinaryReader reader)
+    {
+        var word = new Word();
+
+        word.ReadFromBinary(reader);
+
+        return word;
     }
 
 

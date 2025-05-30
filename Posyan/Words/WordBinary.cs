@@ -1,6 +1,26 @@
-using Spectre.Console;
-
 namespace Posyan.Words;
+
+
+/*
+ * A word is stored in binary using the following template:
+ *
+ * 1. Grammatical class (byte)
+ * 2. Orthography (string)
+ * 3. Definition (string)
+ * 4. Word etymology origin (string)
+ * 5. Word etymology literal (string)
+ *
+ * If the word is also a verb, the following data is appended after the
+ * previous ones:
+ *
+ * 6. Root (string)
+ * 7. Conjugation (byte)
+ * 8. Mood (byte)
+ * 9. Tense (byte)
+ * 10. Person (byte)
+ * 11. Number (byte)
+ * 12. Nominal form (byte)
+ */
 
 
 public static class WordBinary
@@ -23,7 +43,7 @@ public static class WordBinary
         var grammaticalClass = GrammaticalClass.Unknown;
         ReadWithoutAdvancing(reader, binaryReader => grammaticalClass = (GrammaticalClass)binaryReader.ReadByte());
 
-        var word = grammaticalClass == GrammaticalClass.Verb ? new Verb() : new Word();
+        var word = grammaticalClass == GrammaticalClass.Verb ? Verb.FromBinary(reader) : Word.FromBinary(reader);
 
         word.ReadFromBinary(reader);
 

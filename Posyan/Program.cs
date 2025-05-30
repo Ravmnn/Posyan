@@ -12,7 +12,9 @@ using Posyan.Analysis;
 namespace Posyan;
 
 
-// TODO: finish verbs
+// TODO: add verb inflection detection.
+// TODO: be able to inflect verbs based on raw inflection data.
+// TODO: be able to extract inflection data based on the verb orthography.
 
 
 class PosyanProgram
@@ -63,30 +65,35 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
-        PrintWordCacheFile();
-
-        return;
+        // PrintWordCacheFile();
+        //
+        // return;
 
         try
         {
             Init();
 
-            Source = File.ReadAllText("test.txt");
+            Source = File.ReadAllText("../../../test.txt");
 
             // load already known words from cache
             Analyser.WordsDefinition = WordBinary.ReadAll(WordCacheFilePath).ToList();
 
-            // search for new words and store them
+            // search for new words
             var newStringWords = Analyser.SearchForNewWords(Source);
             var newWordsResults = Api.GetWordsAsync(newStringWords, WordSearchResultCallback);
 
+            // get the new words data using the dictionary API
             var newWords = OpenDictApi.WordSearchResult.GetSuccessfullyWords(newWordsResults.Result);
             newWords = VerbAnalyser.InstantiateVerbs(newWords).ToArray();
 
+            // add the new words to the analyser
             Analyser.WordsDefinition.AddRange(newWords);
 
+            // save the new words data in the binary database
             WordBinary.WriteAll(WordCacheFilePath, newWords);
 
+
+            // prints everything beautifully
             var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(Analyser.WordsDefinition));
             var painter = new FintPainter(scanner, ColorTable);
 
