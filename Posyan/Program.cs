@@ -65,18 +65,15 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
-        AnsiConsole.WriteLine(VerbInflector.Inflect("comer",
-            VerbInflectionMood.Indicative, VerbInflectionTense.PastImperfect,
-            VerbInflectionPerson.First, VerbInflectionNumber.Plural
-        ));
-
-        return;
+        // AnsiConsole.WriteLine(VerbInflector.Inflect("comer", new VerbInflectionData(Person: VerbInflectionPerson.Second)));
+        //
+        // return;
 
         try
         {
             Init();
 
-            Source = File.ReadAllText("../../../test.txt");
+            Source = File.ReadAllText("test.txt");
 
             // load already known words from cache
             Analyser.WordsDefinition = WordBinary.ReadAll(WordCacheFilePath).ToList();

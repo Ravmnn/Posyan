@@ -39,10 +39,7 @@ public class Verb : Word
 
     public VerbConjugation Conjugation { get; private set; }
 
-    public VerbInflectionMood InflectionMood { get; private set; }
-    public VerbInflectionTense InflectionTense { get; private set; }
-    public VerbInflectionPerson InflectionPerson { get; private set; }
-    public VerbInflectionNumber InflectionNumber { get; private set; }
+    public VerbInflectionData InflectionData { get; private set; }
     public VerbNominalForm NominalForm { get; private set; }
 
 
@@ -53,6 +50,7 @@ public class Verb : Word
         Root = GetInfinitiveVerbRoot(Orthography);
         Conjugation = GetConjugationOfInfinitiveVerb(Orthography);
 
+        InflectionData = VerbInflectionData.Undefined();
         NominalForm = VerbNominalForm.Infinitive;
     }
 
@@ -63,6 +61,7 @@ public class Verb : Word
     protected Verb()
     {
         Root = "";
+        InflectionData = VerbInflectionData.Undefined();
     }
 
 
@@ -70,8 +69,8 @@ public class Verb : Word
     {
         var str = base.ToString();
 
-        return str + $"\nRoot: {Root}\nConjugation: {Conjugation}\nPerson: {InflectionPerson}\nNumber: {InflectionNumber}\n" +
-               $"Mood: {InflectionMood}\nTense: {InflectionTense}\nNominal: {NominalForm}";
+        return str + $"\nRoot: {Root}\nConjugation: {Conjugation}\nPerson: {InflectionData.Person}\nNumber: {InflectionData.Number}\n" +
+               $"Mood: {InflectionData.Mood}\nTense: {InflectionData.Tense}\nNominal: {NominalForm}";
     }
 
 
@@ -81,10 +80,12 @@ public class Verb : Word
 
         Root = reader.ReadString();
         Conjugation = (VerbConjugation)reader.ReadByte();
-        InflectionMood = (VerbInflectionMood)reader.ReadByte();
-        InflectionTense = (VerbInflectionTense)reader.ReadByte();
-        InflectionPerson = (VerbInflectionPerson)reader.ReadByte();
-        InflectionNumber = (VerbInflectionNumber)reader.ReadByte();
+        InflectionData = new VerbInflectionData(
+            (VerbInflectionMood)reader.ReadByte(),
+            (VerbInflectionTense)reader.ReadByte(),
+            (VerbInflectionPerson)reader.ReadByte(),
+            (VerbInflectionNumber)reader.ReadByte()
+        );
         NominalForm = (VerbNominalForm)reader.ReadByte();
     }
 
@@ -105,10 +106,10 @@ public class Verb : Word
 
         writer.Write(Root);
         writer.Write((byte)Conjugation);
-        writer.Write((byte)InflectionMood);
-        writer.Write((byte)InflectionTense);
-        writer.Write((byte)InflectionPerson);
-        writer.Write((byte)InflectionNumber);
+        writer.Write((byte)InflectionData.Mood);
+        writer.Write((byte)InflectionData.Tense);
+        writer.Write((byte)InflectionData.Person);
+        writer.Write((byte)InflectionData.Number);
         writer.Write((byte)NominalForm);
     }
 
