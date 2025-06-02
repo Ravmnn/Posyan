@@ -45,8 +45,6 @@ public static class WordBinary
 
         var word = grammaticalClass == GrammaticalClass.Verb ? Verb.FromBinary(reader) : Word.FromBinary(reader);
 
-        word.ReadFromBinary(reader);
-
         return word;
     }
 

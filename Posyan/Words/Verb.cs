@@ -19,55 +19,8 @@ public enum VerbConjugation
 
     First,
     Second,
-    Third,
+    Third
 }
-
-
-
-
-public enum VerbMood
-{
-    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
-
-    Indicative,
-    Subjective,
-    Imperative
-}
-
-
-public enum VerbTense
-{
-    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
-
-    Present,
-    PastPerfect,
-    PastImperfect,
-    Pluperfect, // "pretérito mais-que-perfeito"
-    PresentFuture,
-    PastFuture,
-    Future
-}
-
-
-public enum VerbPerson
-{
-    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
-
-    First,
-    Second,
-    Third,
-}
-
-
-public enum VerbNumber
-{
-    Undefined, // Verbs in a nominal form aren't inflected (mood, tense, person, number)
-
-    Singular,
-    Plural
-}
-
-
 
 
 public enum VerbNominalForm
@@ -86,17 +39,18 @@ public class Verb : Word
 
     public VerbConjugation Conjugation { get; private set; }
 
-    public VerbMood Mood { get; private set; }
-    public VerbTense Tense { get; private set; }
-    public VerbPerson Person { get; private set; }
-    public VerbNumber Number { get; private set; }
+    public VerbInflectionMood InflectionMood { get; private set; }
+    public VerbInflectionTense InflectionTense { get; private set; }
+    public VerbInflectionPerson InflectionPerson { get; private set; }
+    public VerbInflectionNumber InflectionNumber { get; private set; }
     public VerbNominalForm NominalForm { get; private set; }
 
 
+    // note: orthography must be in infinitive form
     public Verb(string orthography, string definition, WordEtymology etymology)
         : base(orthography, definition, GrammaticalClass.Verb, etymology)
     {
-        Root = GetInfinitiveVerbRoot(Orthography) ?? throw new InvalidOperationException($"Base verb instantiation must be in infinitive form. (\"{orthography}\")");
+        Root = GetInfinitiveVerbRoot(Orthography);
         Conjugation = GetConjugationOfInfinitiveVerb(Orthography);
 
         NominalForm = VerbNominalForm.Infinitive;
@@ -116,8 +70,8 @@ public class Verb : Word
     {
         var str = base.ToString();
 
-        return str + $"\nRoot: {Root}\nConjugation: {Conjugation}\nPerson: {Person}\nNumber: {Number}\n" +
-               $"Mood: {Mood}\nTense: {Tense}\nNominal: {NominalForm}";
+        return str + $"\nRoot: {Root}\nConjugation: {Conjugation}\nPerson: {InflectionPerson}\nNumber: {InflectionNumber}\n" +
+               $"Mood: {InflectionMood}\nTense: {InflectionTense}\nNominal: {NominalForm}";
     }
 
 
@@ -127,10 +81,10 @@ public class Verb : Word
 
         Root = reader.ReadString();
         Conjugation = (VerbConjugation)reader.ReadByte();
-        Mood = (VerbMood)reader.ReadByte();
-        Tense = (VerbTense)reader.ReadByte();
-        Person = (VerbPerson)reader.ReadByte();
-        Number = (VerbNumber)reader.ReadByte();
+        InflectionMood = (VerbInflectionMood)reader.ReadByte();
+        InflectionTense = (VerbInflectionTense)reader.ReadByte();
+        InflectionPerson = (VerbInflectionPerson)reader.ReadByte();
+        InflectionNumber = (VerbInflectionNumber)reader.ReadByte();
         NominalForm = (VerbNominalForm)reader.ReadByte();
     }
 
@@ -147,29 +101,49 @@ public class Verb : Word
     {
         base.WriteToBinary(writer);
 
-        if (!IsVerbInInfinitive(Orthography))
-            throw new InvalidOperationException("Only infinitive verbs can be written.");
+        InvalidVerbNominalFormException.ThrowIfVerbIsNot(Orthography, VerbNominalForm.Infinitive, "Only infinitive verbs can be written.");
 
         writer.Write(Root);
         writer.Write((byte)Conjugation);
-        writer.Write((byte)Mood);
-        writer.Write((byte)Tense);
-        writer.Write((byte)Person);
-        writer.Write((byte)Number);
+        writer.Write((byte)InflectionMood);
+        writer.Write((byte)InflectionTense);
+        writer.Write((byte)InflectionPerson);
+        writer.Write((byte)InflectionNumber);
         writer.Write((byte)NominalForm);
     }
 
 
-    public static string? GetInfinitiveVerbRoot(string verb)
-        => !IsVerbInInfinitive(verb) ? null : verb[..^2];
+    public static string GetInfinitiveVerbRoot(string verbInInfinitive)
+    {
+        InvalidVerbNominalFormException.ThrowIfVerbIsNot(verbInInfinitive, VerbNominalForm.Infinitive);
 
+        return verbInInfinitive[..^2];
+    }
+
+
+    public static bool IsVerbIn(string verb, VerbNominalForm form) => form switch
+    {
+        VerbNominalForm.Infinitive => IsVerbInInfinitive(verb),
+        VerbNominalForm.Gerund => IsVerbInGerund(verb),
+        VerbNominalForm.Participle => IsVerbInParticiple(verb),
+
+        _ => false
+    };
 
     public static bool IsVerbInInfinitive(string verb)
         => verb.EndsWith("ar") || verb.EndsWith("er") || verb.EndsWith("ir");
 
+    public static bool IsVerbInGerund(string verb)
+        => verb.EndsWith("ando") || verb.EndsWith("endo") || verb.EndsWith("indo");
+
+    public static bool IsVerbInParticiple(string verb)
+        => verb.EndsWith("ado") || verb.EndsWith("ido");
+
 
     public static VerbConjugation GetConjugationOfInfinitiveVerb(string verb)
     {
+        InvalidVerbNominalFormException.ThrowIfVerbIsNot(verb, VerbNominalForm.Infinitive);
+
         var suffix = verb[^2..];
 
         return suffix switch

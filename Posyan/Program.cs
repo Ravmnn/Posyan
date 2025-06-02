@@ -65,9 +65,12 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
-        // PrintWordCacheFile();
-        //
-        // return;
+        AnsiConsole.WriteLine(VerbInflector.Inflect("comer",
+            VerbInflectionMood.Indicative, VerbInflectionTense.PastImperfect,
+            VerbInflectionPerson.First, VerbInflectionNumber.Plural
+        ));
+
+        return;
 
         try
         {
