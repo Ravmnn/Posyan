@@ -1,3 +1,6 @@
+using System.Numerics;
+
+
 namespace Posyan.Words;
 
 
@@ -66,7 +69,14 @@ public static class VerbInflector
         var verbRoot = Verb.GetInfinitiveVerbRoot(infinitiveForm);
         var verbConjugation = Verb.GetConjugationOfInfinitiveVerb(infinitiveForm);
 
-        var ending = verbConjugation switch
+        var ending = GetEnding(verbConjugation, inflectionData);
+
+        return verbRoot + ending;
+    }
+
+
+    public static string GetEnding(VerbConjugation verbConjugation, VerbInflectionData inflectionData)
+        => verbConjugation switch
         {
             VerbConjugation.First => GetFirstConjugationIndicativeEnding(inflectionData),
             VerbConjugation.Second => GetSecondConjugationIndicativeEnding(inflectionData),
@@ -75,10 +85,63 @@ public static class VerbInflector
             _ => throw new ArgumentException("Invalid conjugation.")
         };
 
-        return verbRoot + ending;
+
+    public static VerbInflectionData GetInflectionDataFromVerb(string infinitiveForm, string verbInflected)
+    {
+        var verbRoot = Verb.GetInfinitiveVerbRoot(infinitiveForm);
+        var verbConjugation = Verb.GetConjugationOfInfinitiveVerb(infinitiveForm);
+
+        var ending = verbInflected[verbRoot.Length..];
+
+        return GetInflectionDataOfEnding(verbConjugation, ending);
     }
 
 
+    public static VerbInflectionData GetInflectionDataOfEnding(VerbConjugation verbConjugation, string ending)
+    {
+        var inflectionData = new VerbInflectionData();
+        var found = false;
+
+        // go through every inflection possibility to find the specific ending inflection data.
+
+        ForeachEnumItem(typeof(VerbInflectionMood), 1, mood => {
+            ForeachEnumItem(typeof(VerbInflectionTense), 1, tense => {
+                ForeachEnumItem(typeof(VerbInflectionPerson), 1, person => {
+                    ForeachEnumItem(typeof(VerbInflectionNumber), 1, number =>
+                    {
+                        if (!found)
+                            inflectionData = new VerbInflectionData(
+                                (VerbInflectionMood)mood,
+                                (VerbInflectionTense)tense,
+                                (VerbInflectionPerson)person,
+                                (VerbInflectionNumber)number
+                            );
+
+                        if (GetEnding(verbConjugation, inflectionData) == ending)
+                            found = true;
+                    });
+                });
+            });
+        });
+
+        if (found)
+            return inflectionData;
+
+        throw new InvalidOperationException("Invalid verb inflection.");
+    }
+
+
+    private static void ForeachEnumItem<TEnumItem>(Type enumType, TEnumItem startValue, Action<TEnumItem> action)
+        where TEnumItem : INumber<TEnumItem>
+    {
+        for (var i = startValue;; i++)
+        {
+            if (!Enum.IsDefined(enumType, i))
+                break;
+
+            action(i);
+        }
+    }
 
 
 

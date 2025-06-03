@@ -65,7 +65,7 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
-        // AnsiConsole.WriteLine(VerbInflector.Inflect("comer", new VerbInflectionData(Person: VerbInflectionPerson.Second)));
+        // AnsiConsole.WriteLine(VerbInflector.GetInflectionDataFromVerb("comer", "comeriam").ToString());
         //
         // return;
 
