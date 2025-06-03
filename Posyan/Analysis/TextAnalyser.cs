@@ -8,18 +8,15 @@ namespace Posyan.Analysis;
 
 public class TextAnalyser
 {
-    private readonly Scanner _scanner = new Scanner(new WordOrDigitRule(0));
-
     public List<Word> WordsDefinition { get; set; } = [];
 
 
-    public bool IsWordNew(string word) => !WordsDefinition.Exists(wordDefinition => wordDefinition.Orthography == word);
+    public IEnumerable<string> SearchForNewWords(IEnumerable<string> words)
+        => SearchForNewWords(WordsDefinition, words);
 
 
-    public IEnumerable<string> SearchForNewWords(string source)
-    {
-        var tokens = _scanner.Scan(new Lexer(source).Tokenize());
-
-        return from token in tokens where IsWordNew(token.Text) select token.Text;
-    }
+    public static IEnumerable<string> SearchForNewWords(IEnumerable<Word> definedWords, IEnumerable<string> words)
+        => from word in words
+            where definedWords.All(definedWord => definedWord.Orthography != word)
+            select word;
 }

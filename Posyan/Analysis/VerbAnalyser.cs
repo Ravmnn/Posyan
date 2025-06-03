@@ -6,7 +6,7 @@ namespace Posyan.Analysis;
 
 public class VerbAnalyser
 {
-    public static IEnumerable<Word> InstantiateVerbs(IEnumerable<Word> words)
+    public static IEnumerable<Word> InstantiateBaseVerbs(IEnumerable<Word> words)
     {
         List<Word> result = [];
 

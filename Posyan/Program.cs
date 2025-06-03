@@ -41,6 +41,8 @@ class PosyanProgram
     public static OpenDictApi Api { get; }
     public static TextAnalyser Analyser { get; }
 
+    public static Scanner Scanner { get; }
+
     public static string Source { get; set; }
 
 
@@ -48,6 +50,8 @@ class PosyanProgram
     {
         Api = new OpenDictApi();
         Analyser = new TextAnalyser();
+
+        Scanner = new Scanner(new WordOrDigitRule(0));
 
         Source = "";
     }
@@ -75,16 +79,19 @@ class PosyanProgram
 
             Source = File.ReadAllText("test.txt");
 
+            var tokens = new Lexer(Source).Tokenize();
+            var words = from word in Scanner.Scan(tokens) select word.Text;
+
             // load already known words from cache
             Analyser.WordsDefinition = WordBinary.ReadAll(WordCacheFilePath).ToList();
 
             // search for new words
-            var newStringWords = Analyser.SearchForNewWords(Source);
+            var newStringWords = Analyser.SearchForNewWords(words);
             var newWordsResults = Api.GetWordsAsync(newStringWords, WordSearchResultCallback);
 
             // get the new words data using the dictionary API
             var newWords = OpenDictApi.WordSearchResult.GetSuccessfullyWords(newWordsResults.Result);
-            newWords = VerbAnalyser.InstantiateVerbs(newWords).ToArray();
+            newWords = VerbAnalyser.InstantiateBaseVerbs(newWords).ToArray();
 
             // add the new words to the analyser
             Analyser.WordsDefinition.AddRange(newWords);
