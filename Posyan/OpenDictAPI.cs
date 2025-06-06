@@ -10,17 +10,17 @@ namespace Posyan;
 
 public class OpenDictApi : HttpClient
 {
-    public record struct WordSearchResult(Word? Word, string WordText, bool HasFailed)
+    public record struct WordSearchResult(Word Word, bool HasFailed)
     {
         public static WordSearchResult Failed(string wordText)
-            => new WordSearchResult { Word = null, WordText = wordText, HasFailed = true};
+            => new WordSearchResult { Word = new Word(wordText), HasFailed = true};
 
         public static WordSearchResult Success(Word word)
-            => new WordSearchResult { Word = word, WordText = word.Orthography, HasFailed = false};
+            => new WordSearchResult { Word = word, HasFailed = false};
 
 
-        public static IEnumerable<Word> GetSuccessfullyWords(IEnumerable<WordSearchResult> wordSearchResults)
-            => from wordSearchResult in wordSearchResults where !wordSearchResult.HasFailed select wordSearchResult.Word;
+        public static IEnumerable<Word> GetWords(IEnumerable<WordSearchResult> wordSearchResults)
+            => from result in wordSearchResults select result.Word;
     }
 
 

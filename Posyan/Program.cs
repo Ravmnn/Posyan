@@ -21,6 +21,7 @@ class PosyanProgram
 {
     public static Dictionary<int, ColorObject> ColorTable { get; } = new Dictionary<int, ColorObject>
     {
+        // everything that isn't a word, like punctuation
         { -1, 243 },
 
         { (int)GrammaticalClass.MascNoun, 38 },
@@ -75,6 +76,11 @@ class PosyanProgram
 
         try
         {
+            // TODO: not defined words are instantiated with the grammatical class "Unknown".
+            // TODO: detect nominal forms of the verbs. (like gerund and participle).
+            // TODO: detect word independently of the casing.
+            // TODO: improve word searching logging.
+
             Init();
 
             Source = File.ReadAllText("test.txt");
@@ -83,25 +89,30 @@ class PosyanProgram
             var words = from word in Scanner.Scan(tokens) select word.Text;
 
             // load already known words from cache
-            Analyser.WordsDefinition = WordBinary.ReadAll(WordCacheFilePath).ToList();
+            Analyser.WordBank.Words = WordBinary.ReadAll(WordCacheFilePath).ToList();
 
             // search for new words
-            var newStringWords = Analyser.SearchForNewWords(words);
-            var newWordsResults = Api.GetWordsAsync(newStringWords, WordSearchResultCallback);
+            var newStringWords = Analyser.WordBank.GetNewWordsIn(words);
 
             // get the new words data using the dictionary API
-            var newWords = OpenDictApi.WordSearchResult.GetSuccessfullyWords(newWordsResults.Result);
-            newWords = VerbAnalyser.InstantiateBaseVerbs(newWords).ToArray();
+            var newWordsResults = Api.GetWordsAsync(newStringWords, WordSearchResultCallback).Result;
 
-            // add the new words to the analyser
-            Analyser.WordsDefinition.AddRange(newWords);
+            var newWords = OpenDictApi.WordSearchResult.GetWords(newWordsResults).ToArray();
 
+            // add the new words to the word bank
+            Analyser.WordBank.Words.AddRange(newWords);
+
+            // instantiate verbs
+            Analyser.WordBank.InstantiateBaseVerbs();
+            Analyser.WordBank.InstantiateInflectedVerbs();
+
+            // TODO: don't save non-base verbs to avoid throwing an exception
             // save the new words data in the binary database
-            WordBinary.WriteAll(WordCacheFilePath, newWords);
+            //WordBinary.WriteAll(WordCacheFilePath, newWords);
 
 
             // prints everything beautifully
-            var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(Analyser.WordsDefinition));
+            var scanner = new Scanner(new NonWordAndDigitRule(-1), new WordGrammaticalClassRule(Analyser.WordBank.Words));
             var painter = new FintPainter(scanner, ColorTable);
 
             Console.Clear();
@@ -116,7 +127,7 @@ class PosyanProgram
 
     private static void WordSearchResultCallback(OpenDictApi.WordSearchResult result)
     {
-        AnsiConsole.Markup($"New word \"[mediumspringgreen]{result.WordText}[/]\".");
+        AnsiConsole.Markup($"New word \"[mediumspringgreen]{result.Word.Orthography}[/]\".");
 
         if (result.HasFailed)
             AnsiConsole.Markup("[red] (Failed)[/]");

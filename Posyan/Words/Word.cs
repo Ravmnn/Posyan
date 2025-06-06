@@ -52,7 +52,7 @@ public class Word
     public WordEtymology Etymology { get; private set;}
 
 
-    public Word(string orthography, string definition, GrammaticalClass grammaticalClass, WordEtymology etymology)
+    public Word(string orthography, string definition = "", GrammaticalClass grammaticalClass = GrammaticalClass.Unknown, WordEtymology etymology = new WordEtymology())
     {
         Orthography = orthography.ToLower(); // default to lower
         Definition = definition;

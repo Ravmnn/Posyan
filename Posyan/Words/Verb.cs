@@ -58,6 +58,17 @@ public class Verb : Word
         : this(word.Orthography, word.Definition, word.Etymology) {}
 
 
+    public Verb(Verb baseVerb, string inflectedVerb)
+        : base(baseVerb.Orthography, baseVerb.Definition, GrammaticalClass.Verb, baseVerb.Etymology)
+    {
+        Root = baseVerb.Root;
+        Conjugation = baseVerb.Conjugation;
+
+        InflectionData = VerbInflector.GetInflectionDataFromVerb(baseVerb.Orthography, inflectedVerb);
+        NominalForm = VerbNominalForm.Undefined;
+    }
+
+
     protected Verb()
     {
         Root = "";
@@ -100,9 +111,9 @@ public class Verb : Word
 
     public override void WriteToBinary(BinaryWriter writer)
     {
-        base.WriteToBinary(writer);
+        InvalidVerbNominalFormException.ThrowIfVerbIsNot(Orthography, VerbNominalForm.Infinitive, "Only infinitive verbs (base verbs) can be written.");
 
-        InvalidVerbNominalFormException.ThrowIfVerbIsNot(Orthography, VerbNominalForm.Infinitive, "Only infinitive verbs can be written.");
+        base.WriteToBinary(writer);
 
         writer.Write(Root);
         writer.Write((byte)Conjugation);
