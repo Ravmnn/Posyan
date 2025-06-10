@@ -45,8 +45,21 @@ public class WordBank
     public void InstantiateBaseVerbs()
         => Words = InstantiateBaseVerbs(Words).ToList();
 
-    public void InstantiateInflectedVerbs()
-        => Words = InstantiateInflectedVerbs(GetBaseVerbs(), Words).ToList();
+    public void InstantiateVariantVerbs()
+        => Words = InstantiateVariantVerbs(GetBaseVerbs(), Words).ToList();
+
+
+    public void LoadWordsFromBinary(BinaryReader reader)
+        => Words = ReadWordsFromBinary(reader).ToList();
+
+    public void LoadWordsFromFile(string path)
+        => LoadWordsFromBinary(new BinaryReader(new FileStream(path, FileMode.Open)));
+
+    public void SaveWordsToBinary(BinaryWriter writer)
+        => WriteWordsToBinary(writer, Words);
+
+    public void SaveWordsToFile(string path)
+        => SaveWordsToBinary(new BinaryWriter(new FileStream(path, FileMode.Append)));
 
 
     public static Word InstantiateBaseVerb(Word word)
@@ -64,30 +77,68 @@ public class WordBank
     }
 
 
-    public static Word InstantiateInflectedVerb(IEnumerable<Verb> baseVerbs, Word word)
+    // variant verbs are the inflected ones or the nominal ones.
+
+    public static Word InstantiateVariantVerb(IEnumerable<Verb> baseVerbs, Word word)
     {
         // the dictionary API won't find inflected verbs, so their grammatical class are
-        // always going to be unknown
+        // always going to be unknown.
+
         if (word.GrammaticalClass != GrammaticalClass.Unknown)
             return word;
 
         foreach (var baseVerb in baseVerbs)
-            if (VerbInflector.IsVerbInflectionOf(baseVerb.Orthography, word.Orthography))
+            if (Verb.IsVerbRootEqual(baseVerb.Orthography, word.Orthography))
                 return new Verb(baseVerb, word.Orthography);
 
         return word;
     }
 
 
-    public static IEnumerable<Word> InstantiateInflectedVerbs(IEnumerable<Verb> baseVerbs, IEnumerable<Word> words)
+    public static IEnumerable<Word> InstantiateVariantVerbs(IEnumerable<Verb> baseVerbs, IEnumerable<Word> words)
     {
         baseVerbs = baseVerbs.ToArray();
 
         var result = new List<Word>();
 
         foreach (var word in words)
-            result.Add(InstantiateInflectedVerb(baseVerbs, word));
+            result.Add(InstantiateVariantVerb(baseVerbs, word));
 
         return result;
     }
+
+
+    public static IEnumerable<Word> ReadWordsFromBinary(BinaryReader reader)
+    {
+        var words = new List<Word>();
+
+        while (reader.BaseStream.Position != reader.BaseStream.Length)
+        {
+            Console.WriteLine($"current pos: {reader.BaseStream.Position}; end pos: {reader.BaseStream.Length}");
+
+            var word = WordBinary.Read(reader);
+            words.Add(word);
+        }
+
+        return words;
+    }
+
+    public static IEnumerable<Word> ReadWordsFromFile(string path)
+        => ReadWordsFromBinary(new BinaryReader(new FileStream(path, FileMode.Open)));
+
+
+    public static void WriteWordsToBinary(BinaryWriter writer, IEnumerable<Word> words)
+    {
+        foreach (var word in words)
+        {
+            // do not write non-infinitive (non-base) verbs.
+            if (word is Verb verb && !Verb.IsVerbInInfinitive(verb.Orthography))
+                continue;
+
+            WordBinary.Write(writer, word);
+        }
+    }
+
+    public static void WriteWordsToFile(string path, IEnumerable<Word> words)
+        => WriteWordsToBinary(new BinaryWriter(new FileStream(path, FileMode.Append)), words);
 }

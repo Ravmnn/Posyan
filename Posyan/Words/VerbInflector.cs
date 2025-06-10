@@ -64,12 +64,6 @@ public static class VerbInflector
 {
     // TODO: finish Subjunctive and Imperative... Indicative finished by now.
 
-    public static bool IsVerbInflectionOf(string baseVerb, string inflectedVerb)
-    {
-        var baseVerbRoot = Verb.GetInfinitiveVerbRoot(baseVerb);
-        return baseVerb != inflectedVerb && inflectedVerb.StartsWith(baseVerbRoot);
-    }
-
 
     public static string Inflect(string infinitiveForm, VerbInflectionData inflectionData)
     {
@@ -98,7 +92,7 @@ public static class VerbInflector
         var verbRoot = Verb.GetInfinitiveVerbRoot(baseVerb);
         var verbConjugation = Verb.GetConjugationOfInfinitiveVerb(baseVerb);
 
-        if (!IsVerbInflectionOf(baseVerb, inflectedVerb))
+        if (!Verb.IsVerbInflectionOf(baseVerb, inflectedVerb))
             throw new ArgumentException("Verb is not an inflection of base verb."); // TODO: create a specific exception for this.
 
         var ending = inflectedVerb[verbRoot.Length..];

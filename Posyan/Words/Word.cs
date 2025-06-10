@@ -74,8 +74,13 @@ public class Word
         => $"Gramatical Class: {GrammaticalClass}\nOrthography: {Orthography}\nDefinition: {Definition}\nEtymology: {Etymology}";
 
 
-    private static string? StringOrNull(string source)
+    protected static string? StringOrNull(string source)
         => source == "null" ? null : source;
+
+    // note: don't write empty strings to binary.
+    protected static string StringifyString(string? source)
+        => source is null || source.Length == 0 ? "null" : source;
+
 
     public virtual void ReadFromBinary(BinaryReader reader)
     {
@@ -105,10 +110,10 @@ public class Word
         // class, so we know how to read it.
 
         writer.Write((byte)GrammaticalClass);
-        writer.Write(Orthography);
-        writer.Write(Definition);
-        writer.Write(Etymology.Origin ?? "null");
-        writer.Write(Etymology.Literal ?? "null");
+        writer.Write(StringifyString(Orthography));
+        writer.Write(StringifyString(Definition));
+        writer.Write(StringifyString(Etymology.Origin));
+        writer.Write(StringifyString(Etymology.Literal));
     }
 
 
