@@ -12,11 +12,6 @@ using Posyan.Analysis;
 namespace Posyan;
 
 
-// TODO: add verb inflection detection.
-// TODO: be able to inflect verbs based on raw inflection data.
-// TODO: be able to extract inflection data based on the verb orthography.
-
-
 class PosyanProgram
 {
     public static Dictionary<int, ColorObject> ColorTable { get; } = new Dictionary<int, ColorObject>
@@ -70,15 +65,12 @@ class PosyanProgram
 
     public static void Main(string[] args)
     {
-        // AnsiConsole.WriteLine(VerbInflector.GetInflectionDataFromVerb("comer", "comeriam").ToString());
+        // PrintWordCacheFile();
         //
         // return;
 
         try
         {
-            // TODO: not defined words are instantiated with the grammatical class "Unknown".
-            // TODO: detect nominal forms of the verbs. (like gerund and participle).
-            // TODO: detect word independently of the casing.
             // TODO: improve word searching logging.
 
             Init();
@@ -86,10 +78,11 @@ class PosyanProgram
             Source = File.ReadAllText("test.txt");
 
             var tokens = new Lexer(Source).Tokenize();
-            var words = from word in Scanner.Scan(tokens) select word.Text;
+            var words = from word in Scanner.Scan(tokens) select word.Text.ToLower();
 
             // load already known words from cache
-            Analyser.WordBank.Words = WordBinary.ReadAll(WordCacheFilePath).ToList();
+            Analyser.WordBank.LoadWordsFromFile(WordCacheFilePath);
+
 
             // search for new words
             var newStringWords = Analyser.WordBank.GetNewWordsIn(words);
@@ -104,11 +97,11 @@ class PosyanProgram
 
             // instantiate verbs
             Analyser.WordBank.InstantiateBaseVerbs();
-            Analyser.WordBank.InstantiateInflectedVerbs();
+            Analyser.WordBank.InstantiateVariantVerbs();
 
-            // TODO: don't save non-base verbs to avoid throwing an exception
+
             // save the new words data in the binary database
-            //WordBinary.WriteAll(WordCacheFilePath, newWords);
+            Analyser.WordBank.SaveWordsToFile(WordCacheFilePath);
 
 
             // prints everything beautifully
@@ -138,7 +131,7 @@ class PosyanProgram
 
     private static void PrintWordCacheFile()
     {
-        var words = WordBinary.ReadAll(WordCacheFilePath);
+        var words = WordBank.ReadWordsFromFile(WordCacheFilePath);
 
         foreach (var word in words)
         {

@@ -58,14 +58,20 @@ public class Verb : Word
         : this(word.Orthography, word.Definition, word.Etymology) {}
 
 
-    public Verb(Verb baseVerb, string inflectedVerb)
-        : base(baseVerb.Orthography, baseVerb.Definition, GrammaticalClass.Verb, baseVerb.Etymology)
+    public Verb(Verb baseVerb, string variantVerb)
+        : base(variantVerb, baseVerb.Definition, GrammaticalClass.Verb, baseVerb.Etymology)
     {
         Root = baseVerb.Root;
         Conjugation = baseVerb.Conjugation;
 
-        InflectionData = VerbInflector.GetInflectionDataFromVerb(baseVerb.Orthography, inflectedVerb);
-        NominalForm = VerbNominalForm.Undefined;
+        NominalForm = GetVerbNominalForm(variantVerb);
+
+        // verb isn't in nominal form, so it is inflected.
+
+        if (NominalForm == VerbNominalForm.Undefined)
+            InflectionData = VerbInflector.GetInflectionDataFromVerb(baseVerb.Orthography, variantVerb);
+        else
+            InflectionData = VerbInflectionData.Undefined();
     }
 
 
@@ -89,7 +95,10 @@ public class Verb : Word
     {
         base.ReadFromBinary(reader);
 
+        // there are no public constructors creating a Verb object without defining "Root",
+        // so no need for using "StringifyString".
         Root = reader.ReadString();
+
         Conjugation = (VerbConjugation)reader.ReadByte();
         InflectionData = new VerbInflectionData(
             (VerbInflectionMood)reader.ReadByte(),
@@ -115,7 +124,7 @@ public class Verb : Word
 
         base.WriteToBinary(writer);
 
-        writer.Write(Root);
+        writer.Write(StringifyString(Root));
         writer.Write((byte)Conjugation);
         writer.Write((byte)InflectionData.Mood);
         writer.Write((byte)InflectionData.Tense);
@@ -125,11 +134,40 @@ public class Verb : Word
     }
 
 
+    public static bool IsVerbRootEqual(string firstVerb, string secondVerb)
+    {
+        var baseVerbRoot = GetInfinitiveVerbRoot(firstVerb);
+        return firstVerb != secondVerb && secondVerb.StartsWith(baseVerbRoot);
+    }
+
+
+    public static bool IsVerbInflectionOf(string baseVerb, string inflectedVerb)
+    {
+        if (!IsVerbRootEqual(baseVerb, inflectedVerb))
+            return false;
+
+        if (GetVerbNominalForm(inflectedVerb) != VerbNominalForm.Undefined)
+            return false;
+
+        return true;
+    }
+
+
     public static string GetInfinitiveVerbRoot(string verbInInfinitive)
     {
         InvalidVerbNominalFormException.ThrowIfVerbIsNot(verbInInfinitive, VerbNominalForm.Infinitive);
 
         return verbInInfinitive[..^2];
+    }
+
+
+    public static VerbNominalForm GetVerbNominalForm(string nominalVerb)
+    {
+        if (IsVerbInInfinitive(nominalVerb)) return VerbNominalForm.Infinitive;
+        if (IsVerbInGerund(nominalVerb)) return VerbNominalForm.Gerund;
+        if (IsVerbInParticiple(nominalVerb)) return VerbNominalForm.Participle;
+
+        return VerbNominalForm.Undefined;
     }
 
 
