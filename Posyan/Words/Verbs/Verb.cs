@@ -1,4 +1,4 @@
-namespace Posyan.Words;
+namespace Posyan.Words.Verbs;
 
 
 // public enum VerbVoice // Verb voice is almost totally based on semantic.

@@ -1,7 +1,7 @@
 using System.Numerics;
 
 
-namespace Posyan.Words;
+namespace Posyan.Words.Verbs;
 
 
 public enum VerbInflectionMood

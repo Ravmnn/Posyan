@@ -72,6 +72,7 @@ class PosyanProgram
         try
         {
             // TODO: improve word searching logging.
+            // TODO: detect irregular verbs
 
             Init();
 

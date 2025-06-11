@@ -1,4 +1,4 @@
-namespace Posyan.Words;
+namespace Posyan.Words.Verbs;
 
 
 public class InvalidVerbNominalFormException : Exception
