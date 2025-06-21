@@ -71,8 +71,9 @@ class PosyanProgram
 
         try
         {
-            // TODO: improve word searching logging.
             // TODO: detect irregular verbs
+
+            AnsiConsole.MarkupLine("Start");
 
             Init();
 
@@ -81,9 +82,12 @@ class PosyanProgram
             var tokens = new Lexer(Source).Tokenize();
             var words = from word in Scanner.Scan(tokens) select word.Text.ToLower();
 
+            AnsiConsole.MarkupLine("Loading cache.");
+
             // load already known words from cache
             Analyser.WordBank.LoadWordsFromFile(WordCacheFilePath);
 
+            AnsiConsole.MarkupLine("Analysis started.");
 
             // search for new words
             var newStringWords = Analyser.WordBank.GetNewWordsIn(words);

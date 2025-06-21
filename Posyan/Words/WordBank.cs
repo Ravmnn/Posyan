@@ -117,8 +117,6 @@ public class WordBank
 
         while (reader.BaseStream.Position != reader.BaseStream.Length)
         {
-            Console.WriteLine($"current pos: {reader.BaseStream.Position}; end pos: {reader.BaseStream.Length}");
-
             var word = WordBinary.Read(reader);
             words.Add(word);
         }

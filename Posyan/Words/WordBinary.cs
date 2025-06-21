@@ -5,7 +5,7 @@ namespace Posyan.Words;
 
 
 /*
- * A word is stored in binary using the following template:
+ * A word is stored in binary using the following model:
  *
  * 1. Grammatical class (byte)
  * 2. Orthography (string)
